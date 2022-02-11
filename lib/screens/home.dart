@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'package:flutter/foundation.dart';
@@ -11,15 +9,13 @@ import '../elements/fetchedData.dart';
 import '../requests/countryrequest.dart' as country;
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({key, required this.title}) : super(key: key);
-  final String title;
+  MyHomePage({key}) : super(key: key);
 
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController myController = TextEditingController();
-  StreamController countryStream = StreamController();
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   Future countryRequest() async {
@@ -34,16 +30,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  loadCountry() async {
-    countryRequest().then((value) async {
-      countryStream.add(value);
-    });
-  }
 
   void initState() {
-    // countryStream = new StreamController();
-    // countryRequest();
-    // loadCountry();
     super.initState();
   }
 
@@ -51,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: AppBar(
-          title: Text('Country Info'),
+          title: Text('Countries'),
         ),
         body: SingleChildScrollView(
           child: new Container(
@@ -60,52 +48,68 @@ class _MyHomePageState extends State<MyHomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                    Column(
-                      children: [
-                        new TextField(
-                          decoration:
-                              new InputDecoration(labelText: "Enter a Country"),
-                          controller: myController,
-                        ),
-                         RaisedButton(
+                Column(
+                  children: [
+                    new TextField(
+                      decoration:
+                          new InputDecoration(labelText: "Enter a Country"),
+                      controller: myController,
+                    ),
+                    RaisedButton(
                       onPressed: () => {
-                        // countryRequest(myController.text).then((value) =>
-                        //     {print(value), returnData = value, setState(() {})})
+                        Navigator.of(context)
+                            .pushNamed('/country', arguments: myController)
                       },
                       child: new Text('Enter'),
                     ),
-                      ],
-                    ),
-                   
+                  ],
+                ),
                 FutureBuilder(
-                future: countryRequest(),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasData) {
-                    // return ListView.builder(
-                    //       physics: const AlwaysScrollableScrollPhysics(),
-                    //       itemBuilder: (context, index) {
-                    //         var post = snapshot.data[index];
-                    //         return Text(post["name"]["official"].toString());
-                    //       },
-                    //     );
-                    return SingleChildScrollView(
-                      physics: ScrollPhysics(),
-                      child: Column(
-                        children: [
-                          ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: snapshot.data.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Text('${index + 1} '+''+snapshot.data[index]["name"]["common"].toString());
-                            },
+                    future: countryRequest(),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        return SingleChildScrollView(
+                          physics: ScrollPhysics(),
+                          child: Column(
+                            children: [
+                              ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: snapshot.data.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return 
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                          Text('${index + 1} ' +
+                                              '' +
+                                              snapshot.data[index]["name"]
+                                                      ["common"]
+                                                  .toString()),
+                                          Container(
+                                            child: GestureDetector(
+                                              onTap:(){
+                                                Navigator.of(context)
+                            .pushNamed('/country', arguments: snapshot.data[index]["name"]
+                                                        ["common"]);
+                                              } ,
+                                              child: Image.network(snapshot.data[index]["flags"]
+                                                        ["png"].toString(),
+                                                        width: 80,
+                                                        height: 50,
+                                                      fit: BoxFit.fill),
+                                            ),
+                                          )
+                                        ]);
+                                     
+                                },
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }
-                  return CircularProgressIndicator();
-                })
+                        );
+                      }
+                      return CircularProgressIndicator();
+                    })
               ],
             ),
           ),
